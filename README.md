@@ -1,2 +1,2 @@
-# vue_apps
+# Vue Apps
 Simple Vue Apps
