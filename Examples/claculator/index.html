@@ -1,0 +1,981 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<!-- This is a SFC Vue Applet -->
+<!-- 
+    I changed lang="ar" dir="rtl" since it 
+renders every thing (even inside grids) as rtl item
+ -->
+
+<head>
+    <title>Vue تطبيق</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="author" content="mustafa" />
+    <meta http-equiv="X-UA-Compatibel" content="IE=Edge" />
+    <!-- <script defe src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script> -->
+    <script src="./vue.js"></script>
+    <script src="./lodash.js"></script>
+    <link rel="stylesheet" href="./hamburgers.css" />
+</head>
+
+
+
+
+<!-- Don't deploy more than One Root tag inside your component's Template -->
+<button id="hamburger" class="hamburger hamburger--spin" type="button">
+    <span class="hamburger-box">
+        <span class="hamburger-inner "></span>
+    </span>
+</button>
+
+<div id="app">
+    <!-- Hamburger class button -->
+    <!-- Vue Components -->
+    <lcd-display v-bind:liquidcrystal="recievedNumberValueDetectEnhanced" v-on:click="recieveButtonValue()">
+    </lcd-display>
+    <number-box id="a" @mouseover="changeColor()" v-on:click="clickBt()"></number-box>
+
+</div>
+<div class="filter"></div>
+
+
+<!-- Calculator Numbers Buttons Template -->
+<template id="number-box-template">
+
+
+    <!-- Grid for Calculator Buttons -->
+    <div v-bind:class="{grid}">
+        <!-- Set value using data, and then trigger evnt using that value to specify which component -->
+
+        <!-- You can either Add @mouseover.stop to prevent <p> from causing issues
+                    Or just apply event.self to the CAPTURER -->
+        <span v-on:click="$emit('click')" @mouseover.self="mouseHoverColor($event)"
+            @mouseleave.self="mousLeaveEffect($event)" @click.self="mouseClick($event)"
+            v-bind:class="{gridItem,colory} " v-for="num in numbers" ref="rufus" v-bind:key="num" v-bind:value="num">
+            <!-- THIS IS VERY IMPORTNT: this fix the issue of child component listen to parent -->
+            <!-- THE FIX IS TO ADD: v-on:mouseover.stop -->
+            <h2>{{currentNumber = num}}</h2>
+            <!-- <h3 v-on:mouseover.stop>{{currentNumber = num}}</h3> -->
+        </span>
+
+        <!-- Side Buttons for Arithmetic Operations Options -->
+        <div v-bind:class={operationsFlex}>
+            <span v-bind:class="{operationsFlexItems}" v-for="item of op" v-bind:value="item"
+                @mouseover.self="mouseHoverColor($event)" @mouseleave.self="mousLeaveEffect($event)"
+                @click.self="mouseClick($event)">
+                <!-- You can either Add @mouseover.stop to prevent <p> from causing issues
+                    Or just apply event.self to the CAPTURER -->
+
+                <p>{{item}}</p>
+                <!-- <p mouseover.stop ></p> -->
+            </span>
+        </div>
+    </div>
+
+</template>
+
+
+<!-- LCD Seperated Template -->
+<template id="lcd-display-template">
+    <div :class="{lcdColor}" v-on:click="$emit('click')">{{liquidcrystal}}</div>
+</template>
+
+
+
+<!-- My Script -->
+<script type="text/javascript">
+    var NumberBox = Vue.component('number-box', {
+        data() {
+            return {
+                //Styling Items:
+                operationsFlexItems: true,
+                operationsFlex: true,
+                colory: false,
+                grid: true, //to style the component's div
+                gridItem: true, //to style components
+
+                //Rendering Items:
+                currentNumber: 0,
+                currentNumberArray: [],
+                refsVal: "",
+                buttonValue: "",
+                forTestOnly: null,
+                /*Numbers array, becomes Object,*/
+                numbers: {
+
+                    '1': 1,
+                    '2': 2,
+                    '3': 3,
+                    '4': 4,
+                    '5': 5,
+                    '6': 6,
+                    '7': 7,
+                    '8': 8,
+                    '9': 9,
+                    'zero': 0,
+
+
+                },
+                /*Arithmetic Operations:*/
+                op: {
+                    clear: "CLEAR",
+                    plus: "+",
+                    minus: "-",
+                    mul: "x",
+                    div: "/",
+                    //sign: "+/-", Not Supported Yet
+                    // sqrt: "sqr", Not Supported Yet
+                    // dot: ".", Not Supported Yet
+                    eq: "=",
+                },
+                equal: '=',
+            }
+        },
+        template: "#number-box-template",
+
+        methods: {
+            mouseHoverColor: function (event) {
+
+                //console.log(event)
+                console.log(event.target.getAttribute('value'));
+
+                //event.target.style.backgroundColor = "coral"; //MOVED to CSS
+
+                //So th <h1> will never be exposed to the event
+                //this.colory = true;
+                event.stopPropagation();
+                this.$emit('mouseover');
+
+
+            },
+            mousLeaveEffect: function (event) {
+                //this.colory = false;
+
+
+                //   event.target.style.backgroundColor = "rgb(239, 247, 139)"; //MOVED to CSS
+
+
+                //event.stopPropagation(); //Prevent Bubbling, and <h1> will never be exposed to the events
+                this.$emit('mouseleave');
+            },
+            mouseClick: function (event) {
+                this.buttonValue = event.target.getAttribute('value');
+                switch (this.buttonValue) {
+                    case null:
+                        this.buttonValue = `\ ${this.buttonValue}`;
+                        break;
+                    default:
+                        //this.buttonValue = parseInt(this.buttonValue);
+
+                        break;
+
+                }
+                vm.$emit('mouse_clicked_channel', this.buttonValue);
+                console.log(`Button Value is ${this.buttonValue}`);
+
+
+
+            }
+        },
+        computed: {
+
+            createArray() {
+                console.log("Hello, World!" + this);
+                return this.currentNumberArray.push(this.currentNumber);
+            },
+        },
+
+
+    });
+    var LcdDisplay = Vue.component('lcd-display', {
+
+        data() {
+
+            return {
+                lcdColor: true,
+
+            }
+        },
+        template: "#lcd-display-template",
+
+        methods: {
+            recieveButtonValue(event) {
+                vm.$on('mouse_clicked_channel', getValue => {
+                    let r = event.target.setAttribute('value', getValue);
+                    console.log("Captured " + r);
+
+                });
+            },
+
+        },
+        props: {
+            //declare a prop
+            liquidcrystal: {
+                type: String,
+                default: 0,
+                required: false,
+                validator: null
+            },
+            liquidcrystalEvent: {
+                //Deprecated
+                type: Function,
+                default: null,
+                required: false,
+                validator: null
+            }
+
+        }
+
+    });
+    var vm = new Vue({
+
+        //el:'#app',
+        data() {
+            return {
+                hello: "hello_world",
+                counter: 0,
+                recievedNumber: "",
+                recivedNumberValue: '',
+                numberStringGlobal: '', //CreateNumber
+
+                numbersArray: [], //for algorithming
+                numbersArrayRendering: [], // same as numbersArray, but it dosn'e reset as it must be shown on the display
+                numbersArrayLCD: [],
+                numbersLCD: '', // numbersArray but just for rendering by watchers (NOT IMPLEMENTED)
+                toggleLCD: false,
+                numberString: [], // numbersArray but just for rendering 
+                tmpArr1: [],
+                tmpArr2: [],
+
+                x: '',
+                y: '',
+                result: null,
+
+                //Accessories:
+                autoRemoveSigns: [''],
+                operationsOrder: [],
+                operationsOrderResults: [''],
+
+                tmp: [],
+                cleared: null,
+
+
+
+            }
+        },
+        methods: {
+            changeColor: function () {
+                this.counter++;
+                //console.log(this.counter);
+                //console.log(this.$root.$children["1"]);
+                //console.log(this.$refs.box);
+            },
+
+
+            my_listener: function () {
+
+                const {
+                    click,
+                    ...listeners
+                } = this.$listeners
+                return my_listener;
+            },
+            clickBt() {
+                console.log("Video is Clear");
+            },
+            recieveButtonValue(event) {
+                //Deprecated
+                vm.$on('mouse_clicked_channel', getValue => {
+                    let x = getValue;
+                    //event.target.setAttribute('class', getValue); won't work since mouse_clicked_channel is not an event.
+                    this.recievedNumber = getValue;
+                    console.log("Captured " + x);
+
+                });
+            },
+            CreateNumber: function (number) {
+
+
+                var numberString = '';
+                if (this.numbersArray.length <= 8 || isNaN(parseInt(number))) {
+
+
+                    this.numbersArray.push(number);
+
+                }
+
+                this.numbersArrayRendering.push(number);
+
+
+
+
+                for (let item in this.numbersArray) {
+                    numberString += this.numbersArray[item] + "";
+                }
+                //Temporary (due to lazyness)
+                for (let i = 0; i < numberString.length; i++) {
+                    this.numberString[i] = numberString[i];
+                }
+
+                console.log("Number Train is: " + numberString);
+                //return parseInt(numberString); Later
+
+
+
+                this.numberStringGlobal = numberString;
+
+                // Duplicate Arithmetic Fix
+                // this.numberStringGlobal = _.toArray(this.numberStringGlobal);
+
+                // var tmp = '';
+
+                // for (let i = 0; i < this.numberStringGlobal.length; i++) {
+
+                //     if (isNaN(parseInt(this.numberStringGlobal[i])))
+                //         tmp = this.numberStringGlobal[i];
+
+                //     _.remove(this.numberStringGlobal, removeIsNaN => {
+                //         return isNaN(parseInt(this.numberStringGlobal[i]));
+                //     });
+                // }
+                // this.numberStringGlobal.push(tmp);
+                // this.numberStringGlobal.join('');
+                return this.numberStringGlobal;
+            },
+            resetAll: function (isResult, cleared) {
+
+                this.recievedNumber = ""
+                this.recivedNumberValue = '';
+                this.numberStringGlobal = ''; //CreateNumber
+
+                this.numbersArray = []; //for algorithming
+                this
+                    .numbersArrayRendering = []; // same as numbersArray, but it dosn'e reset as it must be shown on the display
+                this.numbersArrayLCD = [];
+                this.numbersLCD =
+                    ''; // numbersArray but just for rendering by watchers (NOT IMPLEMENTED)
+                this.numberString = []; // numbersArray but just for rendering 
+                this.tmpArr1 = [];
+                this.tmpArr2 = [];
+
+                this.x = '';
+                this.y = '';
+
+
+                //Accessories:
+                this.autoRemoveSigns = [''];
+                this.operationsOrder = [];
+                this.operationsOrderResults = [''];
+                this.tmp = [];
+
+                this.toggleLCD = true;
+                if (!isResult && cleared != null) {
+
+                    this.result = null;
+                    this.cleared = 1;
+                    console.log("CLEARD CALCULATOR");
+                    return 'clr';
+
+
+                } else if (!isResult) {
+                    this.result = null;
+                    return "mal";
+                }
+
+            },
+
+            calculatorCore: function (operation) {
+
+
+                //to save operations order: 
+                this.operationsOrder.push(operation);
+                //Explain: Why  i need this.operationsOrder.push(operation); because  this will create
+                //an index[0] that saves the original operation, since the click will change operations
+                //which will result in a wrong value
+                //and also remeber i need a simple calc (like iphone's one) and not advanced like CASIO.
+
+
+                if (this.tmpArr1.length === 0) {
+
+                    //To set first Array's value
+                    for (let i = 0; i < this.numbersArray.length; i++) {
+
+                        if (isNaN(parseInt(this.numbersArray[i]))) {
+
+                            continue; //To recieve numbers Only
+                        }
+
+                        this.tmpArr1[i] = this.numbersArray[i];
+                    }
+
+                    this.numbersArray = []; //to empty so it can recieve new set of number/numbers
+
+
+                    //DEBUGGING MESSAGES:
+                    console.log(`length is: ${this.tmpArr1.length}`); //DEBUG
+                    console.log("Arithmetic sign removed," + this.tmpArr1[this.tmpArr1.length - 1] +
+                        " Is this.tmpArr1 last Item: "); //DEBUG
+                    console.log(`numbersArray's new length is: ${this.numbersArray.length}`);
+                    console.log("JOIN IS: " + this.tmpArr1.join('')); //DEBUG
+
+
+
+
+                } else if (this.tmpArr2.length === 0) {
+
+
+                    //To set second's Array's value
+                    for (let i = 0; i < this.numbersArray.length; i++) {
+
+                        if (isNaN(parseInt(this.numbersArray[i]))) {
+                            continue; //To Never recieves as first input [x,+,-,/] as a part of number.
+                        }
+                        this.tmpArr2[i] = this.numbersArray[i];
+
+                    }
+
+                    //this.tmpArr2.splice(this.tmpArr2.length - 1, 1); //remove Arithmetic sign
+                    this.numbersArray = []; //to empty so it can recieve new set of number/numbers
+
+                    //DEBUGGING MESSAGES:
+                    console.log(`tmpArr2 length is: ${this.tmpArr2.length}`); //DEBUG
+                    console.log("tmpArr2 Arithmetic sign removed," + this.tmpArr2[this.tmpArr2
+                            .length - 1] +
+                        " Is this.tmpArr1 last Item: "); //DEBUG
+                    console.log(`numbersArray's new length is: ${this.numbersArray.length}`);
+                    console.log("tmpArr2 JOIN IS: " + this.tmpArr2.join('')); //DEBUG
+
+
+
+                    if ((this.tmpArr1.length != 0) && (this.tmpArr2.length != 0)) {
+
+                        if (this.operationsOrder.length > 2) {
+
+                            //In case user tries enter multiple arethmetic signs (i copy this from gnome calculator)
+                            console.log("Malfunction");
+                            this.resetAll(false);
+
+                        } else {
+
+
+                            //To perform Operation Immediately:
+                            this.x = parseInt(this.tmpArr1.join(''));
+                            this.y = parseInt(this.tmpArr2.join(''));
+
+
+
+
+                            switch (this.operationsOrder[1]) {
+                                //This long nested switch can be fixed using regex.
+                                case '=':
+
+
+                                    switch (this.operationsOrder[0]) {
+                                        case "x":
+                                            this.result = (this.x * this.y);
+
+                                            break;
+                                        case "+":
+                                            this.result = (this.x + this.y);
+
+                                            break;
+                                        case "-":
+                                            this.result = (this.x - this.y);
+
+                                            break;
+                                        case "/":
+                                            this.result = _.floor((this.x / this.y), 4);
+
+                                            break;
+
+                                        case "CLEAR":
+                                            this.resetAll(false);
+                                            break;
+
+                                        default:
+
+                                            break;
+                                    }
+                                    this.resetAll(true);
+                                    break;
+
+                                default:
+                                    switch (this.operationsOrder[0]) {
+                                        case "x":
+
+                                            this.result = (this.x * this.y);
+
+                                            break;
+                                        case "+":
+                                            this.result = (this.x + this.y);
+
+                                            break;
+                                        case "-":
+                                            this.result = (this.x - this.y);
+
+                                            break;
+                                        case "/":
+                                            this.result = _.floor((this.x / this.y), 4);
+                                            break;
+
+                                        case "CLEAR":
+                                            this.resetAll(false);
+                                            break;
+
+                                    }
+                            }
+
+
+                            this.operationsOrder.shift();
+
+
+
+                            //We need to empty both arrays OR to empth this.tmpArr1 (because tmpArr2 section performs the Operations)       
+                            this.tmpArr1[0] = this.result;
+                            this.tmpArr2 = [];
+                            for (let i = 0; i < this.numbersArray.length; i++) {
+
+                                if (isNaN(parseInt(this.numbersArray[i]))) {
+
+                                    continue; //To Never recieves as first input [x,+,-,/] as a part of number.
+                                }
+                                this.tmpArr2[i] = this.numbersArray[i];
+                            }
+
+
+                            //Show Result to the User:
+                            console.log("RESULT IS: " + this.result); //DEBUG
+                        }
+                    } //Else End
+
+                } //Else if End
+
+            }
+
+        },
+        computed: {
+
+            recievedNumberValueDetectEnhanced: function () {
+
+                switch (this.recivedNumberValue) {
+                    case "x":
+                        this.calculatorCore("x");
+                        break;
+                    case "+":
+                        this.calculatorCore("+");
+                        break;
+                    case "-":
+                        this.calculatorCore("-");
+                        break;
+                    case "/":
+                        this.calculatorCore("/");
+
+                        break;
+                    case "=":
+                        this.calculatorCore('=');
+                        break;
+
+                    case "CLEAR":
+                        this.resetAll(false, '');
+                        break;
+
+                    default:
+                        break;
+                }
+
+                //We need to use a new variable... beacause coreCalculator needs to empty this.numbersArray[] wich this.recievedNumber relay on.
+                //this.forTestOnly = this.recievedNumber + " COMPUTED";
+                //return forTestOnly;
+                return this.numbersLCD; // A guest from WATCH property
+                //return this.result;
+                //return this.tmpArr1.join('') + '' + this.autoRemoveSigns[0]
+                //return this.tmp.join('');
+
+            }
+        },
+        watch: {
+            //to watch this.numbersArray and there for assign it's valu to itself (this.numbersArrayLCD):
+            numbersArray: function () {
+
+                this.numbersArrayLCD.push(this.numbersArray[this.numbersArray.length - 1]);
+                this.numbersLCD = this.numbersArrayLCD.join('');
+
+                if (this.toggleLCD && this.result == null) {
+
+                    if (this.cleared == 1) {
+                        this.numbersArrayLCD = [];
+                        this.toggleLCD = false;
+                        this.cleared = null;
+
+
+                    } else {
+                        this.numbersArrayLCD = [];
+                        this.numbersLCD = "Malfunction";
+                        this.toggleLCD = false;
+                    }
+
+                } else if (this.toggleLCD && this.result != null) {
+
+                    this.numbersArrayLCD = [];
+                    this.numbersLCD = this.result + '';
+                    this.toggleLCD = false;
+
+                }
+                console.log(`WATCHED VALUE IS: ${this.numbersArrayLCD.join('')}`); //DEBUG
+            }
+        },
+        components: {
+            'number-box': NumberBox,
+            'lcd-display': LcdDisplay,
+        },
+        beforeMount() {
+            console.log('Loading App...');
+        },
+        mounted() {
+            console.log("loading finished :\)");
+        },
+        beforeCreate() {
+            console.log('Rendering Components...');
+        },
+
+        created() {
+            console.log("Components Rendered, Ready");
+            //Trigger Event Bus without need to fire specific event (remeber use this instead of explicit Instance vm)
+            this.$on('mouse_clicked_channel', getValue => {
+                let x = getValue;
+                //console.log("Captured " + x);
+
+
+                //To capture click number Only, Important for detect Operation type (i.e: +, -, * ...)
+                this.recivedNumberValue = getValue;
+
+                //event.target.setAttribute('class', getValue); won't work since mouse_clicked_channel is not an event.
+                this.recievedNumber = getValue;
+
+                //Creating Numbers Array to recive multiple inputs from claculator:
+                this.recievedNumber = this.CreateNumber(this.recievedNumber);
+
+                console.log("RECIEVER IS: " + this.recievedNumber);
+
+                //NOTE: this.recievedNumber is used to create the array, while this.recivedNumberValue is only the click value
+            });
+        }
+
+    }).$mount('#app');
+</script>
+
+
+<!-- My Styles -->
+<style lang="css" scoped>
+    @charset "utf-8";
+
+    @font-face {
+        font-family: 'pixil-font';
+        src: url(./resources/VT323-Regular.ttf) format('truetype');
+        /* https://www.fontsquirrel.com/fonts/download/vt323*/
+    }
+
+    html,
+    body {
+        height: 100%;
+        width: 100%;
+        margin: 0%;
+
+    }
+
+    body {
+        z-index: 1;
+        display: flex;
+        justify-items: center;
+        align-items: center;
+        background-color: #5DFF00;
+        /* Background Animations: */
+
+        animation-name: colors;
+        animation-duration: 10s;
+        animation-delay: 0s;
+        animation-direction: alternate;
+        animation-iteration-count: infinite;
+        animation-fill-mode: backwards;
+    }
+
+    /* Background Animations: */
+
+    @keyframes colors {
+        0% {
+            background-color: rgb(221, 66, 97);
+        }
+
+        25% {
+            background-color: rgb(159, 168, 255);
+        }
+
+        50% {
+            background-color: rgb(30, 255, 0);
+        }
+
+        100% {
+            background-color: rgb(230, 230, 91);
+        }
+    }
+
+
+
+    #app {
+        z-index: 3;
+
+        width: 40%;
+        height: auto;
+        margin-left: auto;
+        margin-right: auto;
+        font-family: sans-serif, monospace;
+        vertical-align: middle;
+
+        /* box-shadow: none|h-offset v-offset blur spread color |inset|initial|inherit; */
+        box-shadow: 10px 10px 20px 2px rgba(235, 126, 147, 0.8);
+        border-top-right-radius: 10px;
+        border-top-left-radius: 10px;
+
+    }
+
+    .filter {
+        z-index: 2;
+        position: absolute;
+        top: 0%;
+        left: 0%;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.7);
+    }
+
+
+
+    span {
+
+        /* width: 100px;
+        height: 100px; */
+        box-sizing: border-box;
+        width: 100%;
+
+
+
+        /* background-color: greenyellow; */
+        border: solid 1px rgba(240, 172, 109, 0.4);
+
+
+    }
+
+    .grid {
+
+        /* Grid Only Ruels */
+        /* grid-template-areas:'item item item'; use this only with defined grid-areas*
+          grid-auto-columns:;
+          grid-auto-rows:;
+        */
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(4, 1fr);
+        grid-column-gap: 1px;
+        grid-row-gap: 1px;
+        grid-gap: 1px;
+        gap: 0;
+        /* I added all these gaps to show the different possible options */
+
+        /*Grid spacing style*/
+        /* justify-items: center;
+        align-items: center;
+        justify-content: center;
+        align-content: center; */
+
+        /*Basic width and height styling */
+        box-sizing: border-box;
+        width: 100%;
+
+        /*Polishing*/
+        background-image: linear-gradient(to bottom, rgb(240, 122, 132), rgb(255, 195, 32));
+
+    }
+
+    .gridItem {
+        /* Grid Items Only Rules */
+        /* grid-area:; a short cut for the coming rules, OR just a nickname*/
+
+        grid-column-start: auto;
+        grid-column-end: auto;
+        grid-column: auto auto;
+        grid-row-start: auto;
+        grid-row-end: auto;
+        grid-row: auto auto;
+
+
+
+        align-content: center;
+        align-items: center;
+        text-align: center;
+        /* Don't Use align-sef:center; HERE, but if you decided, You Can use: align-self:stretch; */
+
+
+
+        /* some basic css */
+
+        color: rgb(241, 209, 197);
+
+    }
+
+    .gridItem:hover {
+        background-color: rgb(252, 252, 126);
+        color: rgba(199, 84, 107, .8);
+    }
+
+    /* Grid Item Number 'zero' */
+    .gridItem[value='0'] {
+        grid-column-start: 1;
+        grid-column-end: 4;
+        text-align: center;
+
+    }
+
+    /* .gridItem:hover {
+        background-color: orange;
+        This feature added using Options/Data/Methods -> mouseHoverColor
+    } */
+
+    .colory {
+        /* border-color: rgb(255, 153, 0); */
+        background-color: coral;
+    }
+
+    /* LCD */
+    .lcdColor {
+        background-color: #5DFF00;
+        width: 306px;
+        height: 100px;
+        box-sizing: border-box;
+        width: 100%;
+        /* Font */
+        color: rgb(3, 3, 14);
+        font-family: pixil-font, monospace;
+        font-size: 40px;
+        text-align: left;
+        padding: 5%;
+
+        /*Style*/
+        border-top-right-radius: 10px;
+        border-top-left-radius: 10px;
+        outline-color: transparent;
+
+
+    }
+
+    .operationsFlex {
+        /* Flex Settings */
+        display: flex;
+        flex-direction: column;
+        flex-wrap: nowrap;
+        flex-flow: column nowrap;
+        /* Flex Spacing */
+        justify-items: center;
+        justify-content: center;
+        align-items: center;
+        align-content: center;
+        /* Others */
+        height: auto;
+        grid-column-start: 4;
+        grid-column-end: 5;
+        grid-row-start: 1;
+        grid-row-end: 5;
+
+        /* Automatic Grid Rows, and Columns */
+        /* grid-auto-columns:;
+        grid-auto-rows:;
+        grid-auto-flow:; */
+
+    }
+
+    .operationsFlexItems {
+        order: inherit;
+        flex-grow: auto;
+        flex-shrink: auto;
+        flex: auto auto;
+        flex-basis: auto;
+        /* spacing */
+        align-self: center;
+        justify-self: center;
+        text-align: center;
+        /* width */
+        height: auto;
+        /* Basic CSS */
+        color: rgb(231, 186, 169);
+        border-color: rgb(245, 153, 99);
+        border-width: 1px;
+    }
+
+    .operationsFlexItems:hover {
+        background-color: rgb(252, 252, 126);
+        color: rgba(199, 84, 107, .8);
+        border: solid 1px rgba(240, 172, 109, 0.4);
+    }
+
+    .operationsFlexItems:last-child {
+        /* this is important to style the = button */
+        background-color: orangered;
+    }
+
+    h2,
+    p {
+        display: inline-block;
+    }
+
+    /*Small Responsive Config*/
+    @media screen and (max-width: 414px) {
+        #app {
+            width: 80%;
+        }
+    }
+
+    #hamburger {
+        z-index: 4;
+        position: relative;
+        flex-grow: 500px;
+        /* visibility: hidden; */
+        /* temporarly hidden */
+        display: none;
+    }
+
+    .hamburger-inner,
+    .hamburger-inner::before,
+    .hamburger-inner::after {
+        border: none;
+        background-color: cornflowerblue;
+    }
+
+
+    .hamburger.is-active .hamburger-inner,
+    .hamburger.is-active .hamburger-inner::before,
+    .hamburger.is-active .hamburger-inner::after {
+        background-color: cornflowerblue;
+    }
+</style>
+
+
+
+
+
+<script type="text/javascript">
+    let hamburger = false;
+    document.querySelector("#hamburger").addEventListener('click', (event) => {
+        if (!hamburger) {
+            document.querySelector("#hamburger").className += ' ' + 'is-active';
+            hamburger = true;
+        } else if (hamburger) {
+            document.querySelector("#hamburger").className = 'hamburger hamburger--spin';
+            hamburger = false;
+        }
+        console.log("burger")
+    })
+</script>
+
+<body></body>
+
+
+</html>
