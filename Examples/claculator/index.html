@@ -610,6 +610,14 @@
                         this.numbersLCD = "Malfunction";
                         this.toggleLCD = false;
                     }
+                     
+                   //To prevent user from entering long array that will be out of bounds
+                } else if(numbersLCDArrayCheck.length>10 && this.numbersArray.length==0){
+                       //10 to give oppertunity for normal operations to be done
+                        this.numbersLCD = "Malfunction";// ?? Dosn't Work ??
+                        this.numbersArrayLCD = [];
+                        this.toggleLCD = false;
+                    
 
                 } else if (this.toggleLCD && this.result != null) {
 
