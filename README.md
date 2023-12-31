@@ -1,2 +1,2 @@
 # Vue Apps
-Simple Vue Apps
+Simple Demo Vue Apps
